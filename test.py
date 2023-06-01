@@ -1,80 +1,43 @@
-import math
-import numpy as np
-import matplotlib.pyplot as plt
+def calculate_n(a, b, h):
+    return int((b - a) / h)
 
-from methods import euler_method, modern_euler_method, miln
+def miln(f, a, b, y0, step, ans):
+    dots = [(a, y0)]
+    approx_values = [(a, y0)]  # Список с приближенными значениями
 
-# Определение функций и точных решений
-func1 = lambda x, y: 2 * x * y
-ans1 = lambda x: math.exp(x ** 2)
+    n = calculate_n(a, b, step)
 
-func2 = lambda x, y: math.sin(x) * y
-ans2 = lambda x: math.exp(-math.cos(x))
+    x_i = a
+    y_i = y0
 
-func3 = lambda x, y: 2 * x ** 2 * y
-ans3 = lambda x: math.exp((2 * x ** 3) / 3)
+    for i in range(3):
+        k1 = step * f(x_i, y_i)
+        k2 = step * f(x_i + step / 2, y_i + k1 / 2)
+        k3 = step * f(x_i + step / 2, y_i + k2 / 2)
+        k4 = step * f(x_i + step, y_i + k3)
 
-# Заданные значения
-descriptions = [
-    "1) y' = 2xy, [1.5;3], y0 = 9.4",
-    "2) y' = sin(x)y, [2;3], y0 = 0.4",
-    "3) y' = 2x^2*y, [0;1.5], y0 = 1"
-]
-y_values = [9.4, 0.4, 1]
-a_values = [1.5, 2, 0]
-b_values = [3, 3, 1.5]
-func_values = [func1, func2, func3]
-ans_values = [ans1, ans2, ans3]
+        y_i_1 = y_i + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        x_i += step
+        y_i = y_i_1
+        dots.append((x_i, y_i))
+        approx_values.append((x_i, y_i))  # Добавляем приближенное значение
 
-# Вывод описаний и выбор уравнения
-for desc in descriptions:
-    print(desc)
-var = int(input("Выберите уравнение: ")) - 1
-if var < 0 or var >= len(descriptions):
-    raise ValueError("Некорректный ввод")
+    for i in range(3, n):
+        x_i = dots[-4][0] + step
+        y_pred = dots[-1][1] + (4 * step / 3) * (2 * f(dots[-1][0], dots[-1][1]) -
+                                                 f(dots[-2][0], dots[-2][1]) +
+                                                 2 * f(dots[-3][0], dots[-3][1]))
 
-# Ввод шага и точности
-step = float(input("Введите шаг: "))
-eps = float(input("Введите точность: "))
+        y_i = dots[-2][1] + (step / 3) * (f(x_i, y_pred) + 4 * f(dots[-2][0], dots[-2][1]) +
+                                          f(dots[-3][0], dots[-3][1]))
 
-# Выбор метода и вычисление значений
-methods = [
-    ('Метод Эйлера', euler_method),
-    ('Усовершенствованный метод Эйлера', modern_euler_method),
-    ('Метод Милна', miln)
-]
-for i, method in enumerate(methods, 1):
-    print(f"{i}) {method[0]}")
-method_var = int(input("Выберите метод решения: ")) - 1
-if method_var < 0 or method_var >= len(methods):
-    raise ValueError("Некорректный ввод")
-method_name, method_func = methods[method_var]
+        dots.append((x_i, y_i))
+        approx_values.append((x_i, y_i))  # Добавляем приближенное значение
 
-# Вычисление значений и точных решений
-func = func_values[var]
-ans_func = ans_values[var]
+        if x_i >= b:
+            break
 
-a = a_values[var]
-b = b_values[var]
-y0 = y_values[var]
+    function_values = [(x, f(x, y)) for x, y in dots]
+    ans_values = [(x, ans(x)) for x, y in dots]
 
-dots = method_func(func, a, b, y0, step, eps)
-cur_dots = [(x, ans_func(x)) for x in np.arange(a, b + step, step)]
-
-print(cur_dots)
-print(dots[1])
-
-# Построение графика
-x_exact = np.linspace(a, b)
-y_exact = np.vectorize(ans_func)(x_exact)
-
-x_approx = [point[0] for point in dots[0]]
-y_approx = [point[1] for point in dots[0]]
-
-plt.plot(x_exact, y_exact, 'blue', label=f"Точное решение: y = {ans_values[var].__name__}")
-plt.plot(x_approx, y_approx, 'ro', label=method_name)
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title(f"y' = {func.__name__}")
-plt.legend()
-plt.show()
+    return dots, function_values, n, ans_values, approx_values

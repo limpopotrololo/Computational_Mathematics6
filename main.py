@@ -5,66 +5,55 @@ import numpy as np
 from methods import *
 import matplotlib.pyplot as plt
 
-def plot_solutions(exact_solution, approx_solution):
-    # # Extract x and y values from the exact solution
-    x_exact = [point[0] for point in exact_solution]
-    y_exact = [point[1] for point in exact_solution]
-    #
-    # # Extract x and y values from the approximate solution
-    x_approx = [point[0] for point in approx_solution]
-    y_approx = [point[1] for point in approx_solution]
-    #
-    plt.xlim(min(min(x_exact), min(x_approx))-0.015, max(max(x_exact), max(x_approx))+0.015)
-    plt.ylim(min(min(y_exact), min(y_approx))-0.5, max(max(y_exact), max(y_approx))+0.5)
+def plot_function(f, x_min, x_max, points_x, points_y):
+    x = np.linspace(x_min, x_max, 1000)
+    y = f(x)
 
-    # Plot the exact solution as points and the approximate solution as a line
-    plt.plot(x_exact, y_exact, linestyle='None', marker='o', label='Exact Solution')
-    plt.plot(x_approx, y_approx, linestyle='-', label='Approximate Solution')
-
-
+    plt.plot(x, y)
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.title('Comparison of Exact and Approximate Solutions')
-    plt.legend()
+    plt.title('График жирафик')
     plt.grid(True)
-
+    if points_x and points_y:
+        plt.scatter(points_x, points_y, color='red', label='Points')
 
     plt.show()
 
 
+
 func1 = lambda x, y: 2 * x * y
-func2 = lambda x, y: np.sin(x) - y
+func2 = lambda x, y: np.cos(x) - y
 func3 = lambda x, y: 2 * x ** 2 * y
 
 ans1 = lambda x: np.exp(x ** 2)
 ans2 = lambda x: (np.sin(x) + np.cos(x))/2
 ans3 = lambda x: np.exp((2 * x ** 3) / 3)
 
-des1 = "1)y\' = 2xy, [1.5;3], y0 = 9.4"
-des2 = "2)y\' = sin(x)-y, [0;5], y0 = 0.5"
-des3 = "3)y\' = 2x^2*y, [0;1.5], y0 = 1"
+des1 = "1)y\' = 2xy, [1.5;2], y0 = 9.4"
+des2 = "2)y\' = cos(x)-y, [0;2], y0 = 0.5"
+des3 = "3)y\' = 2x^2*y, [0;2], y0 = 0"
 
 y1 = 9.4
 y2 = 0.5
 y3 = 1
 
 a1 = 1.5
-b1 = 10
+b1 = 2
 a2 = 0
-b2 = 12
+b2 = 3
 a3 = 0
-b3 = 8
+b3 = 2
 
 print("Выбирите уравнение")
 print(des1)
 print(des2)
 print(des3)
-var = int(input(""))
-if var == 1:
+varf = int(input(""))
+if varf == 1:
     func = func1
-elif var == 2:
+elif varf == 2:
     func = func2
-elif var == 3:
+elif varf == 3:
     func = func3
 else:
     raise ValueError("invalid input")
@@ -75,15 +64,35 @@ print("2) Усовершенствованный метод Эйлера")
 print("3) Метод Милна")
 var = int(input(""))
 if var == 1:
-    dots = euler_method(func, a1, b1, y1, step, ans1)
-    cur_dots = [(x, ans1(x)) for x in np.arange(a1, b1 + step, step)]
+    if varf == 1:
+        dots = euler_method(func, a1, b1, y1, step, eps)
+        plot_function(ans1, a1, b1, dots[0], dots[1])
+    elif varf == 2:
+        dots = euler_method(func, a2, b2, y2, step, eps)
+        plot_function(ans2, a2, b2, dots[0], dots[1])
+    else:
+        dots = euler_method(func, a3, b3, y3, step, eps)
+        plot_function(ans3, a3, b3, dots[0], dots[1])
 elif var == 2:
-     dots = modern_euler_method(func, a2, b2, y2, step,ans2)
-     cur_dots = [(x, ans2(x)) for x in np.arange(a2, b2 + step, step)]
-elif var == 3:
-    dots = miln(func, a3, b3, y3, step,ans3)
-    cur_dots = [(x, ans3(x)) for x in np.arange(a3, b3 + step, step)]
+    if varf == 1:
+        dots = modern_euler_method(func, a1, b1, y1, step, eps)
+        plot_function(ans1, a1, b1, dots[0], dots[1])
+    elif varf == 2:
+        dots = modern_euler_method(func, a2, b2, y2, step, eps)
+        plot_function(ans2, a2, b2, dots[0], dots[1])
+    else:
+        dots = modern_euler_method(func, a3, b3, y3, step, eps)
+        plot_function(ans3, a3, b3, dots[0], dots[1])
 
-print(dots[3])
+elif var == 3:
+    if varf == 1:
+        dots = miln(func, a1, b1, y1, step, eps)
+        plot_function(ans1, a1, b1, dots[0], dots[1])
+    elif varf == 2:
+        dots = miln(func, a2, b2, y2, step, eps)
+        plot_function(ans2, a2, b2, dots[0], dots[1])
+    else:
+        dots = miln(func, a3, b3, y3, step, eps)
+        plot_function(ans3, a3, b3, dots[0], dots[1])
+
 print(dots[0])
-plot_solutions(dots[3],dots[0])
